@@ -41,14 +41,14 @@ public class BookingService {
         }
         
         
-        // Check for overlapping bookings
+        // Check for overlapping bookings (same time slots, not just same day)
         List<Booking> overlapping = bookingRepository.findOverlappingBookings(
             request.getStartTime(), 
             request.getEndTime()
         );
         
         if (!overlapping.isEmpty()) {
-            throw new RuntimeException("Time slot is already booked");
+            throw new RuntimeException("Time slot overlaps with existing booking");
         }
         
         Booking booking = new Booking();
@@ -104,6 +104,80 @@ public class BookingService {
         LocalDateTime weekStart = now.withHour(0).withMinute(0).withSecond(0);
         LocalDateTime weekEnd = weekStart.plusWeeks(1);
         return bookingRepository.findWeekBookings(weekStart, weekEnd);
+    }
+    
+    @Transactional
+    public BookingResponse bookNextAvailable(Long userId, int durationMinutes, String notes) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (user.isBlocked()) {
+            if (user.getBlockedUntil() != null && LocalDateTime.now().isBefore(user.getBlockedUntil())) {
+                throw new RuntimeException("User is blocked until " + user.getBlockedUntil());
+            } else if (user.getBlockedUntil() == null) {
+                throw new RuntimeException("User is permanently blocked");
+            }
+        }
+        
+        LocalDateTime nextSlot = findNextAvailableSlot(durationMinutes);
+        if (nextSlot == null) {
+            throw new RuntimeException("No available slots found in the next 7 days");
+        }
+        
+        Booking booking = new Booking();
+        booking.setUser(user);
+        booking.setStartTime(nextSlot);
+        booking.setEndTime(nextSlot.plusMinutes(durationMinutes));
+        booking.setNotes(notes);
+        
+        booking = bookingRepository.save(booking);
+        return convertToResponse(booking);
+    }
+    
+    private LocalDateTime findNextAvailableSlot(int durationMinutes) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime searchStart = now.plusMinutes(30); // Start searching 30 minutes from now
+        LocalDateTime searchEnd = now.plusDays(7); // Search up to 7 days ahead
+        
+        // Round to next hour for cleaner slots
+        searchStart = searchStart.withMinute(0).withSecond(0).withNano(0);
+        if (searchStart.isBefore(now.plusMinutes(30))) {
+            searchStart = searchStart.plusHours(1);
+        }
+        
+        // Operating hours: 6 AM to 11 PM
+        int startHour = 6;
+        int endHour = 23;
+        
+        LocalDateTime current = searchStart;
+        while (current.isBefore(searchEnd)) {
+            // Skip if outside operating hours
+            if (current.getHour() < startHour || current.getHour() >= endHour) {
+                current = current.plusHours(1);
+                continue;
+            }
+            
+            LocalDateTime slotEnd = current.plusMinutes(durationMinutes);
+            
+            // Check if this slot would extend past operating hours
+            if (slotEnd.getHour() > endHour || (slotEnd.getHour() == endHour && slotEnd.getMinute() > 0)) {
+                // Move to next day at start hour
+                current = current.plusDays(1).withHour(startHour).withMinute(0).withSecond(0).withNano(0);
+                continue;
+            }
+            
+            // Check for overlapping bookings
+            List<Booking> overlapping = bookingRepository.findOverlappingBookings(current, slotEnd);
+            
+            if (overlapping.isEmpty()) {
+                return current;
+            }
+            
+            // Move to next hour
+            current = current.plusHours(1);
+        }
+        
+        return null; // No available slot found
     }
     
     private BookingResponse convertToResponse(Booking booking) {

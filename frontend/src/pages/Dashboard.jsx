@@ -7,6 +7,7 @@ import moment from 'moment'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import toast from 'react-hot-toast'
 import BookingModal from '../components/BookingModal'
+import NextAvailableModal from '../components/NextAvailableModal'
 import MachineStatus from '../components/MachineStatus'
 
 const localizer = momentLocalizer(moment)
@@ -18,6 +19,9 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState(null)
+  const [selectedBooking, setSelectedBooking] = useState(null)
+  const [showBookingDetails, setShowBookingDetails] = useState(false)
+  const [showNextAvailableModal, setShowNextAvailableModal] = useState(false)
 
   useEffect(() => {
     fetchBookings()
@@ -56,10 +60,24 @@ function Dashboard() {
     setShowBookingModal(true)
   }
 
+  const handleSelectEvent = (event) => {
+    setSelectedBooking(event.resource)
+    setShowBookingDetails(true)
+  }
+
   const handleBookingCreated = () => {
     fetchBookings()
     setShowBookingModal(false)
     setSelectedSlot(null)
+  }
+
+  const handleNextAvailableSuccess = () => {
+    fetchBookings()
+    setShowNextAvailableModal(false)
+  }
+
+  const handleBookNextAvailable = () => {
+    setShowNextAvailableModal(true)
   }
 
   const handleLogout = () => {
@@ -107,7 +125,7 @@ function Dashboard() {
               <MachineStatus machineType="washer" />
               <MachineStatus machineType="dryer" />
             </div>
-            <div className="lg:col-span-1 flex items-center">
+            <div className="lg:col-span-1 flex flex-col gap-3">
               <button
                 onClick={() => {
                   setSelectedSlot(null)
@@ -116,6 +134,12 @@ function Dashboard() {
                 className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-lg"
               >
                 + Book a Time Slot
+              </button>
+              <button
+                onClick={handleBookNextAvailable}
+                className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-lg"
+              >
+                ⚡ Book Next Available
               </button>
             </div>
           </div>
@@ -127,10 +151,15 @@ function Dashboard() {
               startAccessor="start"
               endAccessor="end"
               onSelectSlot={handleSelectSlot}
+              onSelectEvent={handleSelectEvent}
               selectable
               style={{ height: '100%' }}
               defaultView="week"
               views={['month', 'week', 'day']}
+              step={60}
+              timeslots={1}
+              min={new Date(2024, 0, 1, 6, 0, 0)}
+              max={new Date(2024, 0, 1, 23, 0, 0)}
             />
           </div>
         </div>
@@ -145,6 +174,57 @@ function Dashboard() {
           }}
           onSuccess={handleBookingCreated}
         />
+      )}
+
+      {showNextAvailableModal && (
+        <NextAvailableModal
+          onClose={() => setShowNextAvailableModal(false)}
+          onSuccess={handleNextAvailableSuccess}
+        />
+      )}
+
+      {showBookingDetails && selectedBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Booking Details</h2>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <p className="text-gray-900">{`${selectedBooking.firstName || selectedBooking.username} ${selectedBooking.lastName || ''}`.trim()}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Start Time</label>
+                <p className="text-gray-900">{moment(selectedBooking.startTime).format('MMMM Do YYYY, h:mm A')}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">End Time</label>
+                <p className="text-gray-900">{moment(selectedBooking.endTime).format('MMMM Do YYYY, h:mm A')}</p>
+              </div>
+              
+              {selectedBooking.notes && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Notes</label>
+                  <p className="text-gray-900">{selectedBooking.notes}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={() => {
+                  setShowBookingDetails(false)
+                  setSelectedBooking(null)
+                }}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

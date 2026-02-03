@@ -1,2 +1,50 @@
 /* Additional custom styles if needed */
 
+/* Calendar styling for better hourly view */
+.rbc-time-view .rbc-time-gutter,
+.rbc-time-view .rbc-time-content {
+  border-left: 1px solid #ddd;
+}
+
+.rbc-time-slot {
+  border-top: 1px solid #f0f0f0;
+}
+
+.rbc-timeslot-group {
+  border-bottom: 1px solid #ddd;
+}
+
+.rbc-event {
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.rbc-event:hover {
+  opacity: 0.8;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  height: 40px;
+}
+
+.rbc-time-header-gutter {
+  background-color: #f8f9fa;
+}
+
+.rbc-time-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+}
+
+.rbc-today {
+  background-color: #fff3cd;
+}
+
+.rbc-current-time-indicator {
+  background-color: #dc3545;
+  height: 2px;
+  z-index: 3;
+}
+

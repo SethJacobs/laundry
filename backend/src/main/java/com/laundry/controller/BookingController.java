@@ -68,5 +68,18 @@ public class BookingController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    
+    @PostMapping("/next-available")
+    public ResponseEntity<?> bookNextAvailable(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam(defaultValue = "120") int durationMinutes,
+            @RequestParam(required = false) String notes) {
+        try {
+            BookingResponse booking = bookingService.bookNextAvailable(userPrincipal.getId(), durationMinutes, notes);
+            return ResponseEntity.ok(booking);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
 
