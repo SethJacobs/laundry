@@ -1,5 +1,7 @@
 package com.laundry.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class JwtAuthenticationResponse {
     private String accessToken;
     private String tokenType = "Bearer";
@@ -46,6 +48,7 @@ public class JwtAuthenticationResponse {
         this.username = username;
     }
     
+    @JsonProperty("isAdmin")
     public boolean isAdmin() {
         return isAdmin;
     }
