@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  laundry-postgres:
+    image: postgres:15-alpine
+    container_name: laundry-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-laundry_db}
+      POSTGRES_USER: ${DB_USER:-laundry_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-laundry_pass}
+    volumes:
+      - laundry_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # Changed port to avoid conflict with your main postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-laundry_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - laundry-network
+    restart: unless-stopped
+
+  laundry-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: laundry-backend
+    environment:
+      DB_HOST: laundry-postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-laundry_db}
+      DB_USER: ${DB_USER:-laundry_user}
+      DB_PASSWORD: ${DB_PASSWORD:-laundry_pass}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this-in-production-min-256-bits}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      HA_BASE_URL: ${HA_BASE_URL:-http://homeassistant:8123}
+      HA_TOKEN: ${HA_TOKEN:-}
+      HA_ENABLED: ${HA_ENABLED:-true}
+      HA_WASHER_RUNNING: ${HA_WASHER_RUNNING:-binary_sensor.zt300866n_laundry_remote_status}
+      HA_WASHER_TIME_REMAINING: ${HA_WASHER_TIME_REMAINING:-sensor.zt300866n_laundry_time_remaining}
+      HA_WASHER_STATUS: ${HA_WASHER_STATUS:-sensor.zt300866n_laundry_machine_state}
+      HA_WASHER_SUB_CYCLE: ${HA_WASHER_SUB_CYCLE:-sensor.zt300866n_laundry_sub_cycle}
+      HA_WASHER_END_OF_CYCLE: ${HA_WASHER_END_OF_CYCLE:-binary_sensor.zt300866n_laundry_end_of_cycle}
+      HA_DRYER_RUNNING: ${HA_DRYER_RUNNING:-binary_sensor.av931535g_laundry_remote_status}
+      HA_DRYER_TIME_REMAINING: ${HA_DRYER_TIME_REMAINING:-sensor.av931535g_laundry_time_remaining}
+      HA_DRYER_STATUS: ${HA_DRYER_STATUS:-sensor.av931535g_laundry_machine_state}
+      HA_DRYER_SUB_CYCLE: ${HA_DRYER_SUB_CYCLE:-sensor.av931535g_laundry_sub_cycle}
+      HA_DRYER_END_OF_CYCLE: ${HA_DRYER_END_OF_CYCLE:-binary_sensor.av931535g_laundry_end_of_cycle}
+    ports:
+      - "8082:8080"  # Changed port to avoid conflicts
+    depends_on:
+      laundry-postgres:
+        condition: service_healthy
+    networks:
+      - laundry-network
+    restart: unless-stopped
+
+  laundry-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: laundry-frontend
+    ports:
+      - "8083:80"  # Changed port to avoid conflicts
+    depends_on:
+      - laundry-backend
+    networks:
+      - laundry-network
+    restart: unless-stopped
+
+volumes:
+  laundry_postgres_data:
+
+networks:
+  laundry-network:
+    driver: bridge

@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: laundry-scheduler
+  
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:laundry_db}
+    username: ${DB_USER:laundry_user}
+    password: ${DB_PASSWORD:laundry_pass}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  
+  security:
+    jwt:
+      secret: ${JWT_SECRET:your-secret-key-change-this-in-production-min-256-bits}
+      expiration: 86400000
+  
+  cache:
+    caffeine:
+      spec: maximumSize=100,expireAfterWrite=30s
+
+homeassistant:
+  base-url: ${HA_BASE_URL:http://homeassistant.home}
+  token: ${HA_TOKEN:}
+  enabled: ${HA_ENABLED:false}
+  entity:
+    washer-running: ${HA_WASHER_RUNNING:binary_sensor.zt300866n_laundry_remote_status}
+    washer-time-remaining: ${HA_WASHER_TIME_REMAINING:sensor.zt300866n_laundry_time_remaining}
+    washer-status: ${HA_WASHER_STATUS:sensor.zt300866n_laundry_machine_state}
+    washer-sub-cycle: ${HA_WASHER_SUB_CYCLE:sensor.zt300866n_laundry_sub_cycle}
+    washer-end-of-cycle: ${HA_WASHER_END_OF_CYCLE:binary_sensor.zt300866n_laundry_end_of_cycle}
+    dryer-running: ${HA_DRYER_RUNNING:binary_sensor.av931535g_laundry_remote_status}
+    dryer-time-remaining: ${HA_DRYER_TIME_REMAINING:sensor.av931535g_laundry_time_remaining}
+    dryer-status: ${HA_DRYER_STATUS:sensor.av931535g_laundry_machine_state}
+    dryer-sub-cycle: ${HA_DRYER_SUB_CYCLE:sensor.av931535g_laundry_sub_cycle}
+    dryer-end-of-cycle: ${HA_DRYER_END_OF_CYCLE:binary_sensor.av931535g_laundry_end_of_cycle}
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    com.laundry: DEBUG
+    org.springframework.security: DEBUG
+
