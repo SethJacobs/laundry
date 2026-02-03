@@ -1,13 +1,16 @@
 package com.laundry.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public class BookingRequest {
     @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "America/New_York")
     private LocalDateTime startTime;
     
     @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "America/New_York")
     private LocalDateTime endTime;
     
     private String notes;

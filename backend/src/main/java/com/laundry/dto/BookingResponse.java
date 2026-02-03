@@ -1,5 +1,6 @@
 package com.laundry.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
 
 public class BookingResponse {
@@ -8,9 +9,16 @@ public class BookingResponse {
     private String username;
     private String firstName;
     private String lastName;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "America/New_York")
     private LocalDateTime startTime;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "America/New_York")
     private LocalDateTime endTime;
+    
     private String notes;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "America/New_York")
     private LocalDateTime createdAt;
     
     public BookingResponse() {}
