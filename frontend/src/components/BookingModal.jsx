@@ -26,9 +26,11 @@ function BookingModal({ slot, onClose, onSuccess }) {
     setLoading(true)
 
     try {
+      // Send datetime as-is without timezone conversion
+      // Backend will handle timezone interpretation
       await axios.post('/api/bookings', {
-        startTime: new Date(startTime).toISOString(),
-        endTime: new Date(endTime).toISOString(),
+        startTime: startTime + ':00',
+        endTime: endTime + ':00',
         notes
       })
 
