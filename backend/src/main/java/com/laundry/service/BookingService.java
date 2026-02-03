@@ -84,7 +84,11 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
             .orElseThrow(() -> new RuntimeException("Booking not found"));
         
-        if (!booking.getUser().getId().equals(userId)) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Allow deletion if user owns the booking OR user is an admin
+        if (!booking.getUser().getId().equals(userId) && !user.isAdmin()) {
             throw new RuntimeException("Not authorized to delete this booking");
         }
         

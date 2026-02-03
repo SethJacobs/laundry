@@ -80,6 +80,22 @@ function Dashboard() {
     setShowNextAvailableModal(true)
   }
 
+  const handleDeleteBooking = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to delete this booking?')) {
+      return
+    }
+
+    try {
+      await axios.delete(`/api/bookings/${bookingId}`)
+      toast.success('Booking deleted successfully')
+      fetchBookings()
+      setShowBookingDetails(false)
+      setSelectedBooking(null)
+    } catch (error) {
+      toast.error(error.response?.data || 'Failed to delete booking')
+    }
+  }
+
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -212,13 +228,21 @@ function Dashboard() {
               )}
             </div>
 
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-between pt-4">
+              {(user?.isAdmin || selectedBooking.userId === user?.id) && (
+                <button
+                  onClick={() => handleDeleteBooking(selectedBooking.id)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              )}
               <button
                 onClick={() => {
                   setShowBookingDetails(false)
                   setSelectedBooking(null)
                 }}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors ml-auto"
               >
                 Close
               </button>
