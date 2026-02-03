@@ -6,11 +6,11 @@ import java.time.LocalDateTime;
 
 public class BookingRequest {
     @NotNull
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "America/New_York")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "America/New_York")
     private LocalDateTime startTime;
     
     @NotNull
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "America/New_York")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "America/New_York")
     private LocalDateTime endTime;
     
     private String notes;

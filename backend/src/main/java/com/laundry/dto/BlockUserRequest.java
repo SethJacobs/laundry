@@ -8,7 +8,7 @@ public class BlockUserRequest {
     @NotNull
     private Long userId;
     
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "America/New_York")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "America/New_York")
     private LocalDateTime blockedUntil;
     
     private String reason;
